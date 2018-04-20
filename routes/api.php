@@ -22,3 +22,7 @@ Route::post('create', 'NotesController@create');
 Route::put('update', 'NotesController@update');
 
 Route::get('all', 'NotesController@getAll');
+
+Route::get('get', 'NotesController@get');
+
+Route::delete('delete', 'NotesController@delete');

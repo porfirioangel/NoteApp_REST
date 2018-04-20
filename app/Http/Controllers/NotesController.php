@@ -10,14 +10,34 @@ use DateTime;
 
 class NotesController extends Controller
 {
-    public function getAll(Request $request) {
+    public function getAll(Request $request)
+    {
         $notes = Note::all();
         $jsonResponse = response()->json($notes);
         $jsonResponse->setStatusCode(200);
         return $jsonResponse;
     }
 
-    public function create(Request $request) {
+    public function get(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'numeric'],
+        ]);
+
+        if (!$validator->passes()) {
+            $jsonResponse = response()->json($validator->errors()->all());
+            $jsonResponse->setStatusCode(400);
+            return $jsonResponse;
+        }
+
+        $note = Note::find($request['id']);
+        $jsonResponse = response()->json($note);
+        $jsonResponse->setStatusCode(200);
+        return $jsonResponse;
+    }
+
+    public function create(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'contenido' => ['bail', 'required', 'max:255']
         ]);
@@ -47,7 +67,8 @@ class NotesController extends Controller
         }
     }
 
-    public function update(Request $request) {
+    public function update(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'numeric'],
             'contenido' => ['bail', 'required', 'max:255']
@@ -77,11 +98,40 @@ class NotesController extends Controller
         }
     }
 
-    public function view(Request $request) {
+    public function delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'numeric'],
+        ]);
 
-    }
+        if (!$validator->passes()) {
+            $jsonResponse = response()->json($validator->errors()->all());
+            $jsonResponse->setStatusCode(400);
+            return $jsonResponse;
+        }
 
-    public function delete(Request $request) {
+        $note = Note::find($request['id']);
 
+        if(!$note) {
+            $jsonResponse = response()->json([
+                'error' => 'La nota no existe'
+            ]);
+            $jsonResponse->setStatusCode(400);
+            return $jsonResponse;
+        }
+
+        try {
+            $note->delete();
+            $jsonResponse = response()->json([
+                'message' => 'Nota eliminada correctamente'
+            ]);
+            $jsonResponse->setStatusCode(200);
+            return $jsonResponse;
+        } catch (\Exception $e) {
+            $jsonResponse = response()->json([
+                'error' => $e->getMessage()
+            ]);
+            $jsonResponse->setStatusCode(400);
+        }
     }
 }
