@@ -10,6 +10,13 @@ use DateTime;
 
 class NotesController extends Controller
 {
+    public function getAll(Request $request) {
+        $notes = Note::all();
+        $jsonResponse = response()->json($notes);
+        $jsonResponse->setStatusCode(200);
+        return $jsonResponse;
+    }
+
     public function create(Request $request) {
         $validator = Validator::make($request->all(), [
             'contenido' => ['bail', 'required', 'max:255']
