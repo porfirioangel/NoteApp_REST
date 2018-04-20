@@ -6,12 +6,12 @@ use App\Note;
 use Illuminate\Http\Request;
 use Mockery\Matcher\Not;
 use Validator;
+use DateTime;
 
 class NotesController extends Controller
 {
     public function create(Request $request) {
         $validator = Validator::make($request->all(), [
-            'fecha' => ['required'],
             'contenido' => ['bail', 'required', 'max:255']
         ]);
 
@@ -22,7 +22,7 @@ class NotesController extends Controller
         }
 
         $note = new Note();
-        $note->fecha = $request['fecha'];
+        $note->fecha = new DateTime();
         $note->contenido = $request['contenido'];
 
         try {
@@ -38,12 +38,36 @@ class NotesController extends Controller
             ]);
             $jsonResponse->setStatusCode(400);
         }
-
-        Note::create($request->all());
     }
 
     public function update(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'numeric'],
+            'contenido' => ['bail', 'required', 'max:255']
+        ]);
 
+        if (!$validator->passes()) {
+            $jsonResponse = response()->json($validator->errors()->all());
+            $jsonResponse->setStatusCode(400);
+            return $jsonResponse;
+        }
+
+        $note = Note::find($request['id']);
+        $note->contenido = $request['contenido'];
+
+        try {
+            $note->save();
+            $jsonResponse = response()->json([
+                'message' => 'Nota actualizada correctamente'
+            ]);
+            $jsonResponse->setStatusCode(200);
+            return $jsonResponse;
+        } catch (\Exception $e) {
+            $jsonResponse = response()->json([
+                'error' => $e->getMessage()
+            ]);
+            $jsonResponse->setStatusCode(400);
+        }
     }
 
     public function view(Request $request) {
